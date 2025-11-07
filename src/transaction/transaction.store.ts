@@ -10,7 +10,7 @@ import { BaseTransaction } from './transaction.model'
 // Helper function to safely set properties and prevent prototype pollution
 const isSafeKey = (key: string): boolean => {
   // Check for null, undefined, or non-string values
-  if (typeof key !== 'string' || !key) {
+  if (typeof key !== 'string' || key.length === 0) {
     return false
   }
   
