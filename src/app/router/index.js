@@ -59,7 +59,7 @@ const router = createRouter({
     {
       path: '/homeloandetail',
       name: 'homeloandetail',
-      component: () => import('../views/accounts/HomeLonesAccountsView.vue'),
+      component: () => import('../views/accounts/HomeLoansAccountsView.vue'),
       meta: { requiresAuth: true }
     },
     {
