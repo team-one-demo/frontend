@@ -9,8 +9,18 @@ import { BaseTransaction } from './transaction.model'
 
 // Helper function to safely set properties and prevent prototype pollution
 const isSafeKey = (key: string): boolean => {
+  // Check for null, undefined, or non-string values
+  if (typeof key !== 'string' || !key) {
+    return false
+  }
+  
+  // List of dangerous property names that can pollute prototypes
+  // Using case-insensitive comparison to catch variations
   const dangerousKeys = ['__proto__', 'constructor', 'prototype']
-  return !dangerousKeys.includes(key)
+  const normalizedKey = key.toLowerCase()
+  
+  // Block exact matches (case-insensitive) of dangerous keys
+  return !dangerousKeys.includes(normalizedKey)
 }
 
 export const useTransactionStore = defineStore('transaction', () => {
@@ -38,7 +48,7 @@ export const useTransactionStore = defineStore('transaction', () => {
     
     // Validate the account number to prevent prototype pollution
     if (!isSafeKey(accountNumber)) {
-      console.error('Invalid account number detected:', accountNumber)
+      console.error('Security: Invalid account number detected and blocked')
       return
     }
     
