@@ -6,6 +6,23 @@ import { getTransactions as getAutoLoansTransactions } from './autoloan/autoloan
 import type { Account } from '@/account/account.model'
 import { useAccountStore } from '@/account/account.store'
 import { BaseTransaction } from './transaction.model'
+
+// Helper function to safely set properties and prevent prototype pollution
+const isSafeKey = (key: string): boolean => {
+  // Check for null, undefined, or non-string values
+  if (typeof key !== 'string' || key.length === 0) {
+    return false
+  }
+  
+  // List of dangerous property names that can pollute prototypes
+  // Using case-insensitive comparison to catch variations
+  const dangerousKeys = ['__proto__', 'constructor', 'prototype']
+  const normalizedKey = key.toLowerCase()
+  
+  // Block exact matches (case-insensitive) of dangerous keys
+  return !dangerousKeys.includes(normalizedKey)
+}
+
 export const useTransactionStore = defineStore('transaction', () => {
   const accountStore = useAccountStore()
   const state = reactive({
@@ -27,16 +44,24 @@ export const useTransactionStore = defineStore('transaction', () => {
 
   const getTransactionsByAccount = async (account: Account) => {
     const accountType = account.account_name.toLowerCase()
+    const accountNumber = account.account_number
+    
+    // Validate the account number to prevent prototype pollution
+    if (!isSafeKey(accountNumber)) {
+      console.error('Security: Invalid account number detected and blocked')
+      return
+    }
+    
     state.loading = true
     try {
       if (accountType.includes('checking')) {
-        state.transactions[account.account_number] = await fetchCheckingTransactions(account.account_number)
+        state.transactions[accountNumber] = await fetchCheckingTransactions(accountNumber)
       } else if (accountType.includes('savings')) {
-        state.transactions[account.account_number] = await fetchSavingsTransactions(account.account_number)
+        state.transactions[accountNumber] = await fetchSavingsTransactions(accountNumber)
       } else if (accountType.includes('auto')) {
-        state.transactions[account.account_number] = await fetchAutoLoansTransactions(account.account_number)
+        state.transactions[accountNumber] = await fetchAutoLoansTransactions(accountNumber)
       } else if (accountType.includes('home')) {
-        state.transactions[account.account_number] = await fetchHomeLoansTransactions(account.account_number)
+        state.transactions[accountNumber] = await fetchHomeLoansTransactions(accountNumber)
       }
     } finally {
       state.loading = false
