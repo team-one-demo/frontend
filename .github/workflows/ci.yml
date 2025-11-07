@@ -40,6 +40,12 @@ jobs:
         with:
           languages: javascript
 
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build application
+        run: npm run build
+
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
 
@@ -72,7 +78,7 @@ jobs:
           IMAGE_NAME="ghcr.io/${REPO_LOWER}"
           
           # Create unique tag based on ref and SHA
-          REF_SLUG=$(echo "${{ github.ref_name }}" | sed 's/[^a-zA-Z0-9._-]/-/g')
+          REF_SLUG=$(echo "${{ github.ref_name }}" | sed 's/[^a-zA-Z0-9_-]/-/g')
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-8)
           UNIQUE_TAG="${REF_SLUG}-${SHORT_SHA}-${{ github.run_id }}"
           
@@ -105,6 +111,9 @@ jobs:
         run: |
           IMAGE_NAME="${{ steps.meta.outputs.IMAGE_NAME }}"
           UNIQUE_TAG="${{ steps.meta.outputs.UNIQUE_TAG }}"
+          
+          # Install jq for JSON parsing
+          sudo apt-get update && sudo apt-get install -y jq
           
           # Get the image digest
           IMAGE_DIGEST=$(docker buildx imagetools inspect "${IMAGE_NAME}:${UNIQUE_TAG}" --format '{{json .Manifest}}' | jq -r '.digest')
